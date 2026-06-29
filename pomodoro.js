@@ -16,7 +16,7 @@ const c = {
 };
 
 // ── Config ────────────────────────────────────────────────────────────────────
-const WORK_MIN  = 25;
+const WORK_MIN  = 55;
 const SHORT_MIN = 5;
 const LONG_MIN  = 15;
 const LOG_FILE  = path.join(__dirname, 'sessions.json');
@@ -40,14 +40,24 @@ function saveSession(task, minutes) {
   fs.writeFileSync(LOG_FILE, JSON.stringify(log, null, 2));
 }
 
+// Devuelve las sesiones registradas hoy (a partir del log persistido).
+function sesionesDeHoy(log = loadLog()) {
+  const today = new Date().toDateString();
+  return log.filter(s => new Date(s.date).toDateString() === today);
+}
+
+// Cuenta cuántos pomodoros se han completado hoy según sessions.json.
+function contarPomodorosHoy() {
+  return sesionesDeHoy().length;
+}
+
 function showHistory() {
   const log = loadLog();
   if (log.length === 0) {
     console.log(c.gray + '  Sin sesiones registradas aún.' + c.reset);
     return;
   }
-  const today = new Date().toDateString();
-  const todaySessions = log.filter(s => new Date(s.date).toDateString() === today);
+  const todaySessions = sesionesDeHoy(log);
   const totalMin = todaySessions.reduce((a, s) => a + s.minutes, 0);
 
   console.log(c.bold + c.cyan + '\n  📊 Sesiones de hoy:' + c.reset);
@@ -138,9 +148,15 @@ function showMenu() {
   console.log('  [3] Salir\n');
 }
 
+// Valida/normaliza el nombre de tarea: recorta espacios y, si queda vacío,
+// devuelve un nombre por defecto. Devuelve siempre un string no vacío.
+function validarTarea(input) {
+  return (input == null ? '' : String(input)).trim() || 'Sin nombre';
+}
+
 function askTask(rl, cb) {
   rl.question(c.yellow + '  ¿En qué vas a trabajar? ' + c.reset, answer => {
-    cb(answer.trim() || 'Sin nombre');
+    cb(validarTarea(answer));
   });
 }
 
@@ -167,7 +183,7 @@ function main() {
       askTask(rl, (task) => {
         taskName = task;
         rl.close();
-        console.log(c.gray + `\n  Iniciando 25 minutos para: "${taskName}"\n` + c.reset);
+        console.log(c.gray + `\n  Iniciando ${WORK_MIN} minutos para: "${taskName}"\n` + c.reset);
         process.stdin.setRawMode(true);
         process.stdin.resume();
         process.stdin.setEncoding('utf8');
@@ -189,4 +205,10 @@ function main() {
   });
 }
 
-main();
+// Solo arranca la app si se ejecuta directamente (no al importarla en tests).
+if (require.main === module) {
+  pomosHoy = contarPomodorosHoy(); // continúa la cuenta de hoy entre reinicios
+  main();
+}
+
+module.exports = { validarTarea, sesionesDeHoy, contarPomodorosHoy };

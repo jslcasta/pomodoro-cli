@@ -12,7 +12,7 @@ node pomodoro.js
 
 | Tecla | Acción |
 |-------|--------|
-| `1` | Iniciar un pomodoro (25 min de trabajo) |
+| `1` | Iniciar un pomodoro (55 min de trabajo) |
 | `2` | Ver historial de sesiones de hoy |
 | `3` | Salir |
 
@@ -22,7 +22,7 @@ Durante el temporizador, pulsa **`q`** para detenerlo y volver al menú.
 
 El temporizador sigue el ciclo estándar Pomodoro:
 
-- **25 min** trabajo → **5 min** descanso corto
+- **55 min** trabajo → **5 min** descanso corto
 - Cada 4 pomodoros → **15 min** descanso largo
 
 ## Historial
